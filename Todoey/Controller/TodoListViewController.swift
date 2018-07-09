@@ -8,8 +8,9 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
 
     let realm = try! Realm()
     
@@ -28,6 +29,8 @@ class TodoListViewController: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        
+        tableView.rowHeight = 80
     }
 
 //    override func didReceiveMemoryWarning() {
@@ -42,7 +45,7 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = UITableViewCell(style: .default, reuseIdentifier: "ToDoItemCell")
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         
         
@@ -59,6 +62,17 @@ class TodoListViewController: UITableViewController {
 
         return cell
         
+    }
+    
+    
+    override func updateModel(at indexPath: IndexPath) {
+        do {
+            try realm.write {
+                realm.delete(todoItems![indexPath.row])
+            }
+        } catch {
+            print("update items error msg \(error)")
+        }
     }
     
     //MARK: - TableView delegate methods
@@ -219,4 +233,6 @@ extension TodoListViewController: UISearchBarDelegate {
 
 
 }
+
+
 

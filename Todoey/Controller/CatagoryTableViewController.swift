@@ -8,16 +8,17 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class CatagoryTableViewController: UITableViewController {
+class CatagoryTableViewController: SwipeTableViewController {
     
     let realm = try! Realm()
-
+    
     
     
     var categoryArray: Results<Category>?
     
-//    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    //    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     
     override func viewDidLoad() {
@@ -25,31 +26,38 @@ class CatagoryTableViewController: UITableViewController {
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         loadCategory()
         
-
+        tableView.rowHeight = 80
+        print("load them")
     }
-
-
-
+    
+    
+    
     // MARK: - Table view data source
-
-//    override func numberOfSections(in tableView: UITableView) -> Int {
-//        // #warning Incomplete implementation, return the number of sections
-//        return categoryArray.count
-//    }
-
-
+    
+    //    override func numberOfSections(in tableView: UITableView) -> Int {
+    //        // #warning Incomplete implementation, return the number of sections
+    //        return categoryArray.count
+    //    }
+    
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return categoryArray?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: "CatagoryCell")
+        //        let cell = tableView.dequeueReusableCell(withIdentifier: "CatagoryCell") as! SwipeTableViewCell
+        //        cell.delegate = self
         
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "no category"
+        cell.backgroundColor = UIColor.randomFlat
+//        tableView.backgroundColor = UIColor.randomFlat
+        tableView.separatorStyle = .none
+        
         return cell
     }
-
-
+    
+    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         var textfield = UITextField()
         
@@ -70,6 +78,7 @@ class CatagoryTableViewController: UITableViewController {
         alert.addAction(action)
         
         present(alert, animated: true, completion: nil)
+        
     }
     
     
@@ -86,16 +95,16 @@ class CatagoryTableViewController: UITableViewController {
             print("Save category error msg: \(error)")
         }
         
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
     
     
     func loadCategory() {
-//        do {
-//            categoryArray = try context.fetch(request)
-//        } catch {
-//            print("load categorys error msg: \(error)")
-//        }
+        //        do {
+        //            categoryArray = try context.fetch(request)
+        //        } catch {
+        //            print("load categorys error msg: \(error)")
+        //        }
         
         categoryArray = realm.objects(Category.self)
         
@@ -103,7 +112,17 @@ class CatagoryTableViewController: UITableViewController {
         
     }
     
-    
+    override func updateModel(at indexPath: IndexPath) {
+//        handle action by updating model with deletion
+        
+        do {
+            try realm.write {
+                realm.delete(categoryArray![indexPath.row])
+            }
+        } catch {
+            print("deleting error: \(error)")
+        }
+    }
     
     //MARK: - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -120,5 +139,6 @@ class CatagoryTableViewController: UITableViewController {
     }
     
     
-
+    
 }
+
