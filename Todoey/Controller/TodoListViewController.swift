@@ -14,6 +14,8 @@ class TodoListViewController: SwipeTableViewController {
 
     let realm = try! Realm()
     
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     var todoItems: Results<Item>?
     var selectedCategory: Category? {
         didSet {
@@ -25,12 +27,44 @@ class TodoListViewController: SwipeTableViewController {
     
 //    let defaults = UserDefaults.standard
     
+    override func viewWillAppear(_ animated: Bool) {
+        if let colorHex = selectedCategory?.color {
+            title = selectedCategory!.name
+            
+            if let navBarColor = UIColor(hexString: colorHex) {
+                updateNavBar(withHexCode: colorHex)
+                searchBar.barTintColor = navBarColor
+            }
+            
+    
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        updateNavBar(withHexCode: "1D98F6")
+    }
+    
+    
+    //MARK: - Nav Bar Setup Methods
+    
+    func updateNavBar(withHexCode colorHexCode: String) {
+//        guard let originalColor = UIColor(hexString: "1D98F6") else {
+//            fatalError()
+//        }
+        guard let color = UIColor(hexString: colorHexCode) else { fatalError() }
+        navigationController?.navigationBar.barTintColor = color
+        navigationController?.navigationBar.tintColor = ContrastColorOf(color, returnFlat: true)
+        navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: ContrastColorOf(color, returnFlat: true)]
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        
+        tableView.separatorStyle = .none
         tableView.rowHeight = 80
+        
     }
 
 //    override func didReceiveMemoryWarning() {
@@ -51,8 +85,11 @@ class TodoListViewController: SwipeTableViewController {
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
-            
-            
+// *********** important ***********
+            if let color = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoItems!.count)) {
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat:true)
+            }
             //        item.done == true ? cell.accessoryType = .checkmark : cell.accessoryType = .none
             
             cell.accessoryType = item.done ? .checkmark : .none
@@ -230,6 +267,8 @@ extension TodoListViewController: UISearchBarDelegate {
         }
 
     }
+    
+    
 
 
 }

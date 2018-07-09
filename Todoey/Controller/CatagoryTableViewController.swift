@@ -52,6 +52,7 @@ class CatagoryTableViewController: SwipeTableViewController {
         cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "no category"
         cell.backgroundColor = UIColor(hexString: categoryArray?[indexPath.row].color ?? "FFFFFF")
 //        tableView.backgroundColor = UIColor.randomFlat
+        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat:true)
         tableView.separatorStyle = .none
         
         return cell
