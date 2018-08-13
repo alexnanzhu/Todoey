@@ -14,6 +14,8 @@ class CatagoryTableViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     
+
+    @IBOutlet weak var searchBar: UISearchBar!
     
     
     var categoryArray: Results<Category>?
@@ -144,3 +146,25 @@ class CatagoryTableViewController: SwipeTableViewController {
     
 }
 
+//
+extension CatagoryTableViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        categoryArray = categoryArray?.filter("name CONTAINS[cd] %@", searchBar.text!)
+        
+
+        tableView.reloadData()
+
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadCategory()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+        
+    }
+}
