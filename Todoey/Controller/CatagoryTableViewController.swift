@@ -13,15 +13,12 @@ import ChameleonFramework
 class CatagoryTableViewController: SwipeTableViewController {
     
     let realm = try! Realm()
+    let searchController = UISearchController(searchResultsController: nil)
+
     
 
-    @IBOutlet weak var searchBar: UISearchBar!
-    
-    
     var categoryArray: Results<Category>?
-    
-    //    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
+    var filteredCategoryArray: Results<Category>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,10 +26,32 @@ class CatagoryTableViewController: SwipeTableViewController {
         loadCategory()
         
         tableView.rowHeight = 80
-        print("load them")
+        
+        // Setup the Search Controller
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+
+
     }
     
+    // MARK: - Private instance methods
     
+    func searchBarIsEmpty() -> Bool {
+        // Returns true if the text is empty or nil
+        return searchController.searchBar.text?.isEmpty ?? true
+    }
+    
+    func filterContentForSearchText(_ searchText: String, scope: String = "All") {
+        filteredCategoryArray = categoryArray?.filter("name CONTAINS[cd] %@", searchController.searchBar.text!)
+        tableView.reloadData()
+    }
+
+    func isFiltering() -> Bool {
+        return searchController.isActive && !searchBarIsEmpty()
+    }
+
     
     // MARK: - Table view data source
     
@@ -43,16 +62,29 @@ class CatagoryTableViewController: SwipeTableViewController {
     
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isFiltering() {
+            return filteredCategoryArray?.count ?? 1
+        }
+
         return categoryArray?.count ?? 1
     }
+    
+
+
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //        let cell = tableView.dequeueReusableCell(withIdentifier: "CatagoryCell") as! SwipeTableViewCell
         //        cell.delegate = self
         
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
-        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "no category"
-        cell.backgroundColor = UIColor(hexString: categoryArray?[indexPath.row].color ?? "FFFFFF")
+        var category: Category
+        if isFiltering() {
+            category = filteredCategoryArray![indexPath.row]
+        } else {
+            category = categoryArray![indexPath.row]
+        }
+        cell.textLabel?.text = category.name
+        cell.backgroundColor = UIColor(hexString: category.color)
 //        tableView.backgroundColor = UIColor.randomFlat
         cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat:true)
         tableView.separatorStyle = .none
@@ -147,24 +179,31 @@ class CatagoryTableViewController: SwipeTableViewController {
 }
 
 //
-extension CatagoryTableViewController: UISearchBarDelegate {
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        
-        categoryArray = categoryArray?.filter("name CONTAINS[cd] %@", searchBar.text!)
-        
+//extension CatagoryTableViewController: UISearchBarDelegate {
+//
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//
+//        categoryArray = categoryArray?.filter("name CONTAINS[cd] %@", searchBar.text!)
+//
+//
+//        tableView.reloadData()
+//
+//    }
+//
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        if searchBar.text?.count == 0 {
+//            loadCategory()
+//            DispatchQueue.main.async {
+//                searchBar.resignFirstResponder()
+//            }
+//        }
+//
+//    }
+//}
 
-        tableView.reloadData()
+extension CatagoryTableViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        filterContentForSearchText(searchController.searchBar.text!)
 
-    }
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchBar.text?.count == 0 {
-            loadCategory()
-            DispatchQueue.main.async {
-                searchBar.resignFirstResponder()
-            }
-        }
-        
     }
 }
